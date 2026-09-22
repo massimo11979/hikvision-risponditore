@@ -649,27 +649,40 @@ class Doorbell():
             self.real_play_handle = -1
             logger.info("Video preview stopped.")
 
-    def start_voice_talk(self,audio_file_path=None):
+    def start_voice_talk(self, audio_file_path=None):
+        # Apre il canale voce solo se non è già attivo
         if not hasattr(self, "voice_talk_handle") or self.voice_talk_handle < 0:
             self.voice_talk_handle = self._sdk.NET_DVR_StartVoiceCom_V30(
                 self.user_id, 1, 0, None, None
             )
+
             if self.voice_talk_handle == -1:
                 err = self._sdk.NET_DVR_GetLastError()
                 logger.error("NET_DVR_StartVoiceCom_V30 failed: {}", err)
-            else:
-                logger.info("NET_DVR_StartVoiceCom_V30 succeeded, handle: {}", self.voice_talk_handle)
-                # Start video right along with voice for a full video call , removed for now since it may not be needed and can cause issues with some devices
-                # self.start_video_preview()
+                return False
 
-                # If an audio file is provided, start streaming it in a background thread
-                if audio_file_path:
-                    import threading
-                    threading.Thread(
-                        target=self._stream_audio_file, 
-                        args=(audio_file_path,), 
-                        daemon=True
-                    ).start()
+            logger.info(
+                "NET_DVR_StartVoiceCom_V30 succeeded, handle: {}",
+                self.voice_talk_handle
+            )
+        else:
+            logger.info(
+                "Voice intercom already active, handle: {}",
+                self.voice_talk_handle
+            )
+
+        # Se viene fornito un file audio, lo invia anche se
+        # il canale voce era già stato aperto dalla risposta alla chiamata
+        if audio_file_path:
+            import threading
+            logger.info("Starting call audio playback: {}", audio_file_path)
+            threading.Thread(
+                target=self._stream_audio_file,
+                args=(audio_file_path,),
+                daemon=True
+            ).start()
+
+        return True
 
     def start_voice_forwarding(self, audio_file_path=None):
         if not hasattr(self, "voice_talk_handle") or self.voice_talk_handle < 0:
