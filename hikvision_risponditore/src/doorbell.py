@@ -275,31 +275,42 @@ class Doorbell():
                 logger.error("Failed to get Video Intercom Device ID. Error: {}", self._sdk.NET_DVR_GetLastError())
                 return None
 
-            # Ensure we are only processing Indoor Stations (Type 3)
-            if config_struct.byUnitType != 3:
-                logger.warning("Device is not an Indoor Station (Type: {})", config_struct.byUnitType)
-                return None
+            # Diagnostic data for both Outdoor and Indoor stations
+            if config_struct.byUnitType == 3:
+                unit = config_struct.uVideoIntercomUnit.struIndoorUnit
+                dev_idx = unit.wDevIndex
 
-            unit = config_struct.uVideoIntercomUnit.struIndoorUnit
-            dev_idx = unit.wDevIndex
+                if dev_idx == 0:
+                    sip_number = "10010110001"
+                else:
+                    sip_number = f"1000000000{dev_idx}"
 
-            # Generate SIP number based on device_index rules
-            if dev_idx == 0:
-                sip_number = "10010110001"
+                data = {
+                    "type": "Indoor",
+                    "unit_type": config_struct.byUnitType,
+                    "auto_reg": config_struct.byIsAutoReg,
+                    "floor": unit.wFloorNumber,
+                    "room": unit.wRoomNumber,
+                    "device_index": dev_idx,
+                    "sip_number": sip_number
+                }
+                logger.info("Indoor Station Data: {}", data)
+                return sip_number
+
             else:
-                # Generates format like 10000000001, 10000000002, etc.
-                sip_number = f"1000000000{dev_idx}"
-
-            data = {
-                "type": "Indoor",
-                "floor": unit.wFloorNumber,
-                "room": unit.wRoomNumber,
-                "device_index": dev_idx,
-                "sip_number": sip_number
-            }
-
-            logger.info("Indoor Station Data: {}", data)
-            return sip_number
+                unit = config_struct.uVideoIntercomUnit.struOutdoorUnit
+                data = {
+                    "type": "Outdoor",
+                    "unit_type": config_struct.byUnitType,
+                    "auto_reg": config_struct.byIsAutoReg,
+                    "period": unit.wPeriod,
+                    "building": unit.wBuildingNumber,
+                    "unit": unit.wUnitNumber,
+                    "floor": unit.wFloorNumber,
+                    "device_index": unit.wDevIndex
+                }
+                logger.info("Outdoor Station Data: {}", data)
+                return None
 
     def take_snapshot(self):
 
