@@ -784,7 +784,7 @@ class Doorbell():
                 if hasattr(self, "voice_talk_handle") and self.voice_talk_handle >= 0:
                     self.stop_voice_talk()
             except requests.RequestException as e:
-                self.stop_voice_talk()
+                self.stop_voice_tlk()
                 logger.error(f"Exception during audio streaming: {e}")
 
             finally:
@@ -796,10 +796,28 @@ class Doorbell():
 
     def stop_voice_talk(self):
         if hasattr(self, "voice_talk_handle") and self.voice_talk_handle >= 0:
-            self._sdk.NET_DVR_StopVoiceCom(self.voice_talk_handle)
-            self.voice_talk_handle = -1
-            logger.info("Voice intercom stopped.")
-        
+            handle = self.voice_talk_handle
+
+            # Hikvision SDK: lascia terminare completamente l'ultimo frame audio
+            time.sleep(1)
+
+            stop_res = self._sdk.NET_DVR_StopVoiceCom(handle)
+
+            if stop_res:
+                logger.info(
+                    "NET_DVR_StopVoiceCom succeeded, handle: {}",
+                    handle
+                )
+                self.voice_talk_handle = -1
+                logger.info("Voice intercom stopped.")
+            else:
+                err = self._sdk.NET_DVR_GetLastError()
+                logger.error(
+                    "NET_DVR_StopVoiceCom failed, handle: {}, SDK error: {}",
+                    handle,
+                    err
+                )
+
         # Stop video preview when the call ends
         #self.stop_video_preview()
 
