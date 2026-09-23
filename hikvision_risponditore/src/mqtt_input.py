@@ -1810,7 +1810,7 @@ class MQTTInput():
                     audio_path
                 )
 
-                doorbell.start_voice_talk(
+                doorbell.start_voice_forwarding(
                     audio_file_path=audio_path
                 )
 
