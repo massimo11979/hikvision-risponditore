@@ -298,7 +298,7 @@ class Doorbell():
                 "sip_number": sip_number
             }
 
-            logger.debug("Indoor Station Data: {}", data)
+            logger.info("Indoor Station Data: {}", data)
             return sip_number
 
     def take_snapshot(self):
