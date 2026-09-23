@@ -109,6 +109,13 @@ class Doorbell():
                      self._device_info.serialNumber(), self._type.name)
         logger.info("Connected to doorbell: {} type: {}", self._config.name, self._type.name)
 
+        try:
+            logger.info("DIAGNOSTICA 16001 avviata per {}", self._config.name)
+            sip_id = self.get_intercom_sip_id()
+            logger.info("DIAGNOSTICA 16001 risultato per {}: {}", self._config.name, sip_id)
+        except Exception as err:
+            logger.error("DIAGNOSTICA 16001 errore per {}: {}", self._config.name, err)
+
     def setup_alarm(self):
         '''Receive events from the doorbell. authenticate() must be called first.'''
 
@@ -246,7 +253,6 @@ class Doorbell():
             except Exception as e:
                 logger.error("Error parsing IP from related device union: {}", e)
                 return None
-    '''
     def get_intercom_sip_id(self) -> Optional[str]:
             """
             Retrieves the Video Intercom Device ID configuration and 
@@ -294,7 +300,6 @@ class Doorbell():
 
             logger.debug("Indoor Station Data: {}", data)
             return sip_number
-    '''
 
     def take_snapshot(self):
 
@@ -500,6 +505,7 @@ class Doorbell():
 
                     if param.dwCmdType == 0:
                         logger.debug("*** THIS IS THE RING SIGNAL ***")
+                        logger.info("RING PARAMS: period={} building={} unit={} floor={} room={} dev_index={} unit_type={}", param.wPeriod, param.wBuildingNumber, param.wUnitNumber, param.wFloorNumber, param.wRoomNumber, param.wDevIndex, param.byUnitType)
                     elif param.dwCmdType == 2:
                         logger.debug("Call answered signal received. Checking for custom call label audio...")
                         time.sleep(0.5)
