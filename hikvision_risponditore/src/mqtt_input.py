@@ -889,7 +889,7 @@ class MQTTInput():
 
             error_code = err.args[1]
 
-            if error_code == 23:
+            if error_code in (11, 23):
                 try:
                     doorbell.callsignal(3)
                 except SDKError as err:
@@ -934,7 +934,7 @@ class MQTTInput():
 
             error_code = err.args[1]
 
-            if error_code == 23:
+            if error_code in (11, 23):
                 try:
                     doorbell.callsignal(5)
                 except SDKError as err:
@@ -979,7 +979,7 @@ class MQTTInput():
 
             error_code = err.args[1]
 
-            if error_code == 23:
+            if error_code in (11, 23):
                 try:
                     doorbell.callsignal(2)
                 except SDKError as err:
