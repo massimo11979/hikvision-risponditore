@@ -703,8 +703,15 @@ class Doorbell():
 
     def start_voice_forwarding(self, audio_file_path=None):
         if not hasattr(self, "voice_talk_handle") or self.voice_talk_handle < 0:
+            # Callback voce mantenuto in memoria durante tutta la sessione MR
+            VOICE_CB = CFUNCTYPE(None, c_long, POINTER(c_byte), c_uint, c_byte, c_void_p)
+
+            def _voice_callback(handle, data_buffer, buf_size, audio_flag, user_data):
+                pass
+
+            self._voice_cb_ref = VOICE_CB(_voice_callback)
             self.voice_talk_handle = self._sdk.NET_DVR_StartVoiceCom_MR_V30(
-                self.user_id, 1, None, None
+                self.user_id, 1, self._voice_cb_ref, None
             )
 
             if self.voice_talk_handle == -1:
