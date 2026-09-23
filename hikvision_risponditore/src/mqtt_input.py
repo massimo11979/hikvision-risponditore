@@ -956,37 +956,25 @@ class MQTTInput():
             doorbell._config.name
         )
 
-        url = "/ISAPI/VideoIntercom/callSignal?format=json"
-
-        requestBody = {
-            "CallSignal": {
-                "cmdType": "answer"
-            }
-        }
-
         try:
-            doorbell._call_isapi(
-                "PUT",
-                url,
-                json.dumps(requestBody)
+            logger.info(
+                "Trying direct SDK answer callsignal(2) for {}",
+                doorbell._config.name
+            )
+
+            doorbell.callsignal(2)
+
+            logger.info(
+                "Direct SDK answer callsignal(2) succeeded for {}",
+                doorbell._config.name
             )
 
         except SDKError as err:
             logger.error(
-                "Error while answering call with ISAPI: {}",
+                "Direct SDK answer callsignal(2) failed for {}: {}",
+                doorbell._config.name,
                 err
             )
-
-            error_code = err.args[1]
-
-            if error_code in (11, 23):
-                try:
-                    doorbell.callsignal(2)
-                except SDKError as err:
-                    logger.error(
-                        "Error while answering call with SDK: {}",
-                        err
-                    )
 
     def _caller_info_callback(
         self,
